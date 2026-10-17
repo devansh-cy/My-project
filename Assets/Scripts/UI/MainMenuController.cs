@@ -62,7 +62,7 @@ namespace DroneTrainer.UI
 
             if (difficultyController == null)
             {
-                difficultyController = FindFirstObjectByType<DifficultyController>();
+                difficultyController = FindAnyObjectByType<DifficultyController>();
             }
 
             LoadAvailableScenarios();

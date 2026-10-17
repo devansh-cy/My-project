@@ -87,7 +87,7 @@ namespace DroneTrainer.Sensors
             Vector3 camPos = transform.position;
             Vector3 camForward = transform.forward;
 
-            DroneAgent[] agents = FindObjectsByType<DroneAgent>(FindObjectsSortMode.None);
+            DroneAgent[] agents = FindObjectsByType<DroneAgent>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
 
             for (int i = 0; i < agents.Length; i++)
             {

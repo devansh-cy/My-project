@@ -71,7 +71,7 @@ namespace DroneTrainer.AAR
 
             if (eventLogger == null)
             {
-                eventLogger = FindFirstObjectByType<EventLogger>();
+                eventLogger = FindAnyObjectByType<EventLogger>();
             }
         }
 

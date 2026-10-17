@@ -140,7 +140,7 @@ namespace DroneTrainer.Environment
                 sunLight = RenderSettings.sun;
                 if (sunLight == null)
                 {
-                    Light[] lights = FindObjectsByType<Light>(FindObjectsSortMode.None);
+                    Light[] lights = FindObjectsByType<Light>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
                     for (int i = 0; i < lights.Length; i++)
                     {
                         if (lights[i].type == LightType.Directional)

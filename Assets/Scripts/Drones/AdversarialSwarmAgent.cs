@@ -38,7 +38,7 @@ namespace DroneTrainer.Drones
 
             if (traineeCamera == null)
             {
-                traineeCamera = FindFirstObjectByType<EOCameraSim>();
+                traineeCamera = FindAnyObjectByType<EOCameraSim>();
             }
         }
 

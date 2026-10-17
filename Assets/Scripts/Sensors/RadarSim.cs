@@ -86,7 +86,7 @@ namespace DroneTrainer.Sensors
             Vector3 radarPos = transform.position;
 
             // 1. Scan real drone agents in the world
-            DroneAgent[] agents = FindObjectsByType<DroneAgent>(FindObjectsSortMode.None);
+            DroneAgent[] agents = FindObjectsByType<DroneAgent>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
 
             for (int i = 0; i < agents.Length; i++)
             {

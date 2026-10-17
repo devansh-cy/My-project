@@ -25,7 +25,7 @@ namespace DroneTrainer.EditorTools
             Debug.Log("<color=#00e5ff><b>=== CONFIGURING C-UAS SIMULATION SCENE ===</b></color>");
 
             // 1. Ensure Directional Light exists
-            Light dirLight = Object.FindFirstObjectByType<Light>();
+            Light dirLight = Object.FindAnyObjectByType<Light>();
             if (dirLight == null)
             {
                 GameObject lightGo = new GameObject("Directional Light");
