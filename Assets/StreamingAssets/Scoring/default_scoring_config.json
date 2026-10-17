@@ -1,0 +1,17 @@
+{
+  "detectionTimeWeight": 0.30,
+  "classificationWeight": 0.35,
+  "engagementWeight": 0.35,
+  "optimalDetectionTimeSeconds": 3.5,
+  "maxDetectionTimeoutSeconds": 25.0,
+  "correctClassificationPoints": 100.0,
+  "partialClassificationPoints": 50.0,
+  "wrongClassificationPoints": 0.0,
+  "falseAlarmPenaltyPoints": -30.0,
+  "successfulHostileNeutralizationPoints": 100.0,
+  "correctNonThreatMonitorPoints": 100.0,
+  "timelyAlertPoints": 75.0,
+  "birdDecoyEngagementPenalty": -80.0,
+  "civilianEngagementPenalty": -100.0,
+  "unengagedLethalThreatPenalty": -60.0
+}

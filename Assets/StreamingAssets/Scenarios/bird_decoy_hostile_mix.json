@@ -1,0 +1,101 @@
+{
+  "id": "scenario_03_bird_decoy_hostile_mix",
+  "name": "Coastal Defense - Decoy & Hostile Incursion",
+  "description": "Dense morning fog hampers optical sensor identification. Radar detects multiple aerial tracks: a flock of large migratory sea birds acting as radar decoys, alongside hostile reconnaissance drones and a fast evasive FPV threat. Strict Rules of Engagement (RoE): avoid engaging biologicals or civilian traffic.",
+  "terrain": "Coastal",
+  "timeOfDay": "Dawn",
+  "weather": "DenseFog",
+  "timeLimitSeconds": 300.0,
+  "difficultyRating": 5,
+  "sensorProfile": {
+    "radarNoise": 0.12,
+    "radarClutter": 0.32,
+    "rfJammingLevel": 0.15,
+    "opticalVisibility": 0.38,
+    "thermalContrast": 0.65,
+    "acousticAmbientNoise": 0.22
+  },
+  "threatSpawns": [
+    {
+      "threatId": "BIO-DECOY-FLOCK",
+      "type": "BirdDecoy",
+      "count": 5,
+      "spawnPosition": {
+        "x": -180.0,
+        "y": 60.0,
+        "z": 700.0
+      },
+      "flightPattern": "PerimeterLoiter",
+      "speed": 8.5,
+      "isHostile": false,
+      "spawnTime": 1.5,
+      "swarmSpreadRadius": 35.0,
+      "waypoints": [
+        { "x": -100.0, "y": 70.0, "z": 500.0 },
+        { "x": -120.0, "y": 55.0, "z": 300.0 }
+      ],
+      "payloadDescription": "Biological signature / zero RF emission"
+    },
+    {
+      "threatId": "HOSTILE-RECON-01",
+      "type": "FixedWingRecon",
+      "count": 1,
+      "spawnPosition": {
+        "x": 220.0,
+        "y": 140.0,
+        "z": 1100.0
+      },
+      "flightPattern": "WaypointRoute",
+      "speed": 22.0,
+      "isHostile": true,
+      "spawnTime": 8.0,
+      "swarmSpreadRadius": 0.0,
+      "waypoints": [
+        { "x": 180.0, "y": 120.0, "z": 700.0 },
+        { "x": 50.0, "y": 100.0, "z": 400.0 },
+        { "x": -50.0, "y": 90.0, "z": 200.0 }
+      ],
+      "payloadDescription": "Directional telemetry link, SIGINT eavesdropping package"
+    },
+    {
+      "threatId": "HOSTILE-FPV-ATTACK",
+      "type": "FPVKamikaze",
+      "count": 1,
+      "spawnPosition": {
+        "x": -80.0,
+        "y": 25.0,
+        "z": 850.0
+      },
+      "flightPattern": "ZigZagEvasive",
+      "speed": 31.0,
+      "isHostile": true,
+      "spawnTime": 20.0,
+      "swarmSpreadRadius": 0.0,
+      "waypoints": [
+        { "x": -40.0, "y": 20.0, "z": 500.0 },
+        { "x": 30.0, "y": 15.0, "z": 250.0 },
+        { "x": 0.0, "y": 10.0, "z": 0.0 }
+      ],
+      "payloadDescription": "Anti-personnel fragmentation explosive payload"
+    },
+    {
+      "threatId": "CIVILIAN-GLIDER-01",
+      "type": "CivilianUltralight",
+      "count": 1,
+      "spawnPosition": {
+        "x": 350.0,
+        "y": 180.0,
+        "z": 1200.0
+      },
+      "flightPattern": "DirectInbound",
+      "speed": 18.0,
+      "isHostile": false,
+      "spawnTime": 35.0,
+      "swarmSpreadRadius": 0.0,
+      "waypoints": [
+        { "x": 280.0, "y": 160.0, "z": 600.0 }
+      ],
+      "payloadDescription": "Civilian transponder active / non-threat"
+    }
+  ]
+}

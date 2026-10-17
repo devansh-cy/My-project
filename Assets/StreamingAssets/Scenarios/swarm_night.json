@@ -1,0 +1,61 @@
+{
+  "id": "scenario_02_swarm_night",
+  "name": "Industrial Complex - Nocturnal Swarm Strike",
+  "description": "Under cover of darkness and intermittent electronic RF jamming, an organized swarm of tactical drones approaches an oil refinery. Optical cameras are degraded, forcing reliance on thermal FLIR and pulse-Doppler radar signatures. Followed by low-altitude FPV kamikaze interceptors.",
+  "terrain": "Industrial",
+  "timeOfDay": "Night",
+  "weather": "Overcast",
+  "timeLimitSeconds": 240.0,
+  "difficultyRating": 4,
+  "sensorProfile": {
+    "radarNoise": 0.18,
+    "radarClutter": 0.42,
+    "rfJammingLevel": 0.35,
+    "opticalVisibility": 0.22,
+    "thermalContrast": 0.94,
+    "acousticAmbientNoise": 0.30
+  },
+  "threatSpawns": [
+    {
+      "threatId": "SWARM-WAVE-01",
+      "type": "TacticalQuadcopter",
+      "count": 6,
+      "spawnPosition": {
+        "x": -250.0,
+        "y": 85.0,
+        "z": 950.0
+      },
+      "flightPattern": "SwarmCohesion",
+      "speed": 16.5,
+      "isHostile": true,
+      "spawnTime": 3.0,
+      "swarmSpreadRadius": 45.0,
+      "waypoints": [
+        { "x": -150.0, "y": 70.0, "z": 600.0 },
+        { "x": -50.0, "y": 55.0, "z": 250.0 },
+        { "x": 0.0, "y": 40.0, "z": 50.0 }
+      ],
+      "payloadDescription": "Mesh-linked communication relay with synchronized navigation"
+    },
+    {
+      "threatId": "STRIKE-FPV-02",
+      "type": "FPVKamikaze",
+      "count": 2,
+      "spawnPosition": {
+        "x": 300.0,
+        "y": 18.0,
+        "z": 800.0
+      },
+      "flightPattern": "NapOfEarthLowAltitude",
+      "speed": 34.0,
+      "isHostile": true,
+      "spawnTime": 24.0,
+      "swarmSpreadRadius": 20.0,
+      "waypoints": [
+        { "x": 150.0, "y": 12.0, "z": 400.0 },
+        { "x": 0.0, "y": 8.0, "z": 0.0 }
+      ],
+      "payloadDescription": "High-velocity shaped warhead"
+    }
+  ]
+}

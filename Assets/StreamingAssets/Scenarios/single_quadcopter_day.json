@@ -1,0 +1,40 @@
+{
+  "id": "scenario_01_single_quad_day",
+  "name": "Perimeter Breach - Lone Quadcopter",
+  "description": "A single unauthorized commercial rotary drone has entered controlled airspace above the forward operating outpost in broad daylight. Operator must establish visual/radar lock, classify threat intent, and execute appropriate countermeasure before it breaches the perimeter fence.",
+  "terrain": "SuburbanMilitaryBase",
+  "timeOfDay": "Day",
+  "weather": "Clear",
+  "timeLimitSeconds": 180.0,
+  "difficultyRating": 1,
+  "sensorProfile": {
+    "radarNoise": 0.04,
+    "radarClutter": 0.08,
+    "rfJammingLevel": 0.0,
+    "opticalVisibility": 1.0,
+    "thermalContrast": 0.85,
+    "acousticAmbientNoise": 0.10
+  },
+  "threatSpawns": [
+    {
+      "threatId": "UAV-ALPHA-01",
+      "type": "CommercialQuadcopter",
+      "count": 1,
+      "spawnPosition": {
+        "x": 80.0,
+        "y": 45.0,
+        "z": 750.0
+      },
+      "flightPattern": "DirectInbound",
+      "speed": 14.0,
+      "isHostile": true,
+      "spawnTime": 2.0,
+      "swarmSpreadRadius": 0.0,
+      "waypoints": [
+        { "x": 60.0, "y": 40.0, "z": 400.0 },
+        { "x": 0.0, "y": 25.0, "z": 100.0 }
+      ],
+      "payloadDescription": "Optical high-res camera with suspect underslung payload"
+    }
+  ]
+}
