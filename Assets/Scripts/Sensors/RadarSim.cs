@@ -40,6 +40,7 @@ namespace DroneTrainer.Sensors
         private float sweepTimer = 0f;
         private float sweepInterval;
         private int trackCounter = 1;
+        private readonly System.Collections.Generic.Dictionary<string, string> droneToTrackId = new System.Collections.Generic.Dictionary<string, string>();
 
         public SensorProfile ActiveProfile
         {
@@ -118,8 +119,15 @@ namespace DroneTrainer.Sensors
                     // Add realistic measurement noise
                     Vector3 estimatedPos = ApplyMeasurementNoise(targetPos, range);
 
+                    // Maintain consistent persistent track ID for the same drone
+                    if (!droneToTrackId.TryGetValue(agent.DroneId, out string trackId))
+                    {
+                        trackId = $"{radarId}-TRK-{trackCounter++:D4}";
+                        droneToTrackId[agent.DroneId] = trackId;
+                    }
+
                     Contact contact = new Contact(
-                        id: $"{radarId}-TRK-{trackCounter++:D4}",
+                        id: trackId,
                         estimatedPosition: estimatedPos,
                         confidence: Mathf.Clamp01(pd * (1f - (sensorProfile.radarNoise * 0.4f))),
                         sensorType: SensorType.Radar,

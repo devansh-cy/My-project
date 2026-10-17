@@ -103,6 +103,7 @@ namespace DroneTrainer.EditorTools
             {
                 spawner = new GameObject("SwarmSpawner");
                 spawner.transform.position = new Vector3(0f, 45f, 650f);
+                spawner.transform.rotation = Quaternion.LookRotation(new Vector3(0f, 15f, 0f) - spawner.transform.position, Vector3.up);
             }
 
             var pool = GetOrAddComponent<DronePool>(spawner);

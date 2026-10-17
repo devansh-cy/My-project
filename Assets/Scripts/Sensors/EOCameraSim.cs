@@ -42,6 +42,7 @@ namespace DroneTrainer.Sensors
         private float updateInterval;
         private float timer = 0f;
         private int trackCounter = 1;
+        private readonly System.Collections.Generic.Dictionary<string, string> droneToTrackId = new System.Collections.Generic.Dictionary<string, string>();
 
         public string CameraId => cameraId;
 
@@ -124,8 +125,15 @@ namespace DroneTrainer.Sensors
                         ? SensorType.IRThermalCamera
                         : SensorType.EOCamera;
 
+                    // Maintain consistent persistent track ID for the same drone
+                    if (!droneToTrackId.TryGetValue(agent.DroneId, out string trackId))
+                    {
+                        trackId = $"EO-TRK-{trackCounter++:D4}";
+                        droneToTrackId[agent.DroneId] = trackId;
+                    }
+
                     Contact contact = new Contact(
-                        id: $"EO-TRK-{trackCounter++:D4}",
+                        id: trackId,
                         estimatedPosition: estimatedPos,
                         confidence: Mathf.Clamp01(pd),
                         sensorType: type,

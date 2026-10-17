@@ -70,10 +70,42 @@ namespace DroneTrainer.Drones
         {
             virtualLeaderPosition = transform.position;
 
+            if (leaderWaypoints == null || leaderWaypoints.Count == 0)
+            {
+                GenerateDynamicAttackRoute();
+            }
+
             if (spawnOnStart)
             {
                 SpawnSwarm(swarmCount);
             }
+        }
+
+        public void GenerateDynamicAttackRoute()
+        {
+            if (leaderWaypoints == null) leaderWaypoints = new List<Vector3>();
+            leaderWaypoints.Clear();
+            Vector3 origin = transform.position;
+            Vector3 baseTarget = Vector3.zero;
+
+            var tower = GameObject.Find("SensorTower") ?? GameObject.Find("FOB_Watchtower");
+            if (tower != null) baseTarget = tower.transform.position;
+
+            // Ingress waypoints weaving through airspace towards base
+            Vector3 wp1 = Vector3.Lerp(origin, baseTarget, 0.35f) + new Vector3(Random.Range(-80f, 80f), Random.Range(-5f, 10f), 0f);
+            leaderWaypoints.Add(wp1);
+
+            Vector3 wp2 = Vector3.Lerp(origin, baseTarget, 0.70f) + new Vector3(Random.Range(-40f, 40f), -10f, Random.Range(-20f, 20f));
+            wp2.y = Mathf.Max(18f, wp2.y);
+            leaderWaypoints.Add(wp2);
+
+            // Orbiting ring around target perimeter
+            leaderWaypoints.Add(baseTarget + new Vector3(45f, 25f, 30f));
+            leaderWaypoints.Add(baseTarget + new Vector3(-35f, 20f, 40f));
+            leaderWaypoints.Add(baseTarget + new Vector3(-40f, 22f, -35f));
+            leaderWaypoints.Add(baseTarget + new Vector3(30f, 28f, -40f));
+
+            loopLeaderRoute = true;
         }
 
         private void Update()
@@ -106,12 +138,32 @@ namespace DroneTrainer.Drones
                 Vector3 randomOffset = Random.insideUnitSphere * spawnSpreadRadius;
                 randomOffset.y = Mathf.Abs(randomOffset.y) * 0.5f; // keep altitude grouped above ground
                 Vector3 spawnPos = origin + randomOffset;
-                Quaternion spawnRot = Quaternion.LookRotation(transform.forward, Vector3.up);
+                Quaternion spawnRot = Quaternion.LookRotation((Vector3.zero - spawnPos).normalized, Vector3.up);
 
                 DroneAgent agent = pool.Get(spawnPos, spawnRot);
                 if (agent != null)
                 {
-                    agent.Initialize($"{swarmPrefix}{i + 1:D2}", true, DroneFlightMode.SwarmBoid, maxSpeed);
+                    float individualSpeed = maxSpeed + Random.Range(-2.5f, 3.5f);
+                    agent.Initialize($"{swarmPrefix}{i + 1:D2}", true, DroneFlightMode.SwarmBoid, individualSpeed);
+
+                    // Add intelligent evasive adversarial behavior
+                    var adv = agent.GetComponent<AdversarialSwarmAgent>();
+                    if (adv == null)
+                    {
+                        agent.gameObject.AddComponent<AdversarialSwarmAgent>();
+                    }
+
+                    // Broadcast ground-truth spawn event for telemetry logging and scoring
+                    ThreatType threat = (i % 3 == 0) ? ThreatType.TacticalQuadcopter 
+                                      : ((i % 4 == 0) ? ThreatType.FPVKamikaze : ThreatType.CommercialQuadcopter);
+                    DroneTrainer.Core.Events.EventBus.Publish(new DroneTrainer.Logging.DroneSpawnedEvent(
+                        Time.time,
+                        agent.DroneId,
+                        threat,
+                        spawnPos,
+                        true
+                    ));
+
                     activeSwarm.Add(agent);
                 }
             }

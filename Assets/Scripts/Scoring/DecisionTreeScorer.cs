@@ -164,33 +164,92 @@ namespace DroneTrainer.Scoring
                 }
             }
 
-            // Evaluate each unique contact acted upon or spawned
-            var allEvaluatedTargets = new HashSet<string>(actionsPerContact.Keys);
-            foreach (var kvp in contactTruthMap) allEvaluatedTargets.Add(kvp.Key);
-            foreach (var falseId in falseAlarmContacts) allEvaluatedTargets.Add(falseId);
+            // Group contacts by true drone ID
+            var droneToContactsMap = new Dictionary<string, List<string>>();
+            foreach (var kvp in contactTruthMap)
+            {
+                if (!droneToContactsMap.TryGetValue(kvp.Value, out var cList))
+                {
+                    cList = new List<string>();
+                    droneToContactsMap[kvp.Value] = cList;
+                }
+                cList.Add(kvp.Key);
+            }
+
+            var targetsToEvaluate = new List<(string targetId, DroneSpawnedEvent? spawnData, bool isFalseAlarm, float appearanceTime, List<TraineeActionEvent> actions)>();
+
+            if (droneTruthMap.Count > 0)
+            {
+                // Primary evaluation: Evaluate each spawned threat drone
+                foreach (var kvp in droneTruthMap)
+                {
+                    string droneId = kvp.Key;
+                    var spawn = kvp.Value;
+
+                    var combinedActions = new List<TraineeActionEvent>();
+                    if (actionsPerContact.TryGetValue(droneId, out var directActions))
+                    {
+                        combinedActions.AddRange(directActions);
+                    }
+
+                    float earliestSeen = spawn.Timestamp;
+                    if (droneToContactsMap.TryGetValue(droneId, out var contactIds))
+                    {
+                        for (int c = 0; c < contactIds.Count; c++)
+                        {
+                            string cId = contactIds[c];
+                            if (actionsPerContact.TryGetValue(cId, out var cActions))
+                            {
+                                combinedActions.AddRange(cActions);
+                            }
+                            if (firstSeenTimes.TryGetValue(cId, out float t) && (earliestSeen <= 0f || t < earliestSeen))
+                            {
+                                earliestSeen = t;
+                            }
+                        }
+                    }
+
+                    combinedActions.Sort((a, b) => a.Timestamp.CompareTo(b.Timestamp));
+                    targetsToEvaluate.Add((droneId, spawn, false, earliestSeen, combinedActions));
+                }
+
+                // Also evaluate any false alarm that the trainee mistakenly acted upon (ROE check)
+                foreach (var falseId in falseAlarmContacts)
+                {
+                    if (actionsPerContact.TryGetValue(falseId, out var falseActions) && falseActions.Count > 0)
+                    {
+                        firstSeenTimes.TryGetValue(falseId, out float appTime);
+                        targetsToEvaluate.Add((falseId, null, true, appTime, falseActions));
+                    }
+                }
+            }
+            else
+            {
+                // Fallback for sessions without spawn events
+                var allEvaluatedTargets = new HashSet<string>(actionsPerContact.Keys);
+                foreach (var kvp in contactTruthMap) allEvaluatedTargets.Add(kvp.Key);
+
+                foreach (string contactId in allEvaluatedTargets)
+                {
+                    actionsPerContact.TryGetValue(contactId, out var contactActions);
+                    bool isFalseAlarm = falseAlarmContacts.Contains(contactId);
+                    DroneSpawnedEvent? spawnData = null;
+                    if (contactTruthMap.TryGetValue(contactId, out string trueDroneId) && droneTruthMap.TryGetValue(trueDroneId, out var spawn))
+                    {
+                        spawnData = spawn;
+                    }
+                    firstSeenTimes.TryGetValue(contactId, out float appearanceTime);
+                    targetsToEvaluate.Add((contactId, spawnData, isFalseAlarm, appearanceTime, contactActions));
+                }
+            }
 
             float totalDetection = 0f;
             float totalClass = 0f;
             float totalEngagement = 0f;
 
-            foreach (string contactId in allEvaluatedTargets)
+            foreach (var target in targetsToEvaluate)
             {
-                actionsPerContact.TryGetValue(contactId, out var contactActions);
-                bool isFalseAlarm = falseAlarmContacts.Contains(contactId);
-
-                DroneSpawnedEvent? spawnData = null;
-                if (contactTruthMap.TryGetValue(contactId, out string trueDroneId) && droneTruthMap.TryGetValue(trueDroneId, out var spawn))
-                {
-                    spawnData = spawn;
-                }
-                else if (droneTruthMap.TryGetValue(contactId, out var directSpawn))
-                {
-                    spawnData = directSpawn;
-                }
-
-                firstSeenTimes.TryGetValue(contactId, out float appearanceTime);
-
-                ContactScoreRecord record = EvaluateContact(contactId, spawnData, isFalseAlarm, appearanceTime, contactActions);
+                ContactScoreRecord record = EvaluateContact(target.targetId, target.spawnData, target.isFalseAlarm, target.appearanceTime, target.actions);
                 report.contactRecords.Add(record);
 
                 totalDetection += record.detectionScore;
