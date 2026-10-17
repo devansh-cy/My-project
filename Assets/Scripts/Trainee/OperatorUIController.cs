@@ -74,7 +74,7 @@ namespace DroneTrainer.Trainee
 
         private void Update()
         {
-            if (Input.GetKeyDown(toggleUiKey))
+            if (DroneTrainer.Core.InputHelper.WasKeyPressed(toggleUiKey))
             {
                 enableOnScreenC2Console = !enableOnScreenC2Console;
             }

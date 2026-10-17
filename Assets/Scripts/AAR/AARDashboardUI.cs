@@ -77,7 +77,7 @@ namespace DroneTrainer.AAR
 
         private void Update()
         {
-            if (Input.GetKeyDown(toggleAarKey))
+            if (DroneTrainer.Core.InputHelper.WasKeyPressed(toggleAarKey))
             {
                 ToggleDashboard();
             }

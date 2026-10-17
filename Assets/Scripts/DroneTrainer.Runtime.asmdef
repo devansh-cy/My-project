@@ -1,7 +1,9 @@
 {
     "name": "DroneTrainer.Runtime",
     "rootNamespace": "DroneTrainer",
-    "references": [],
+    "references": [
+        "Unity.InputSystem"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
