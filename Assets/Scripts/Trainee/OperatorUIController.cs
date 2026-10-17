@@ -103,12 +103,34 @@ namespace DroneTrainer.Trainee
             {
                 assessment = new ContactAssessment(evt.Contact, now);
                 trackedAssessments[id] = assessment;
-                contactIdOrder.Insert(0, id);
 
-                // Auto-select first contact if none selected
-                if (string.IsNullOrEmpty(selectedContactId))
+                if (!evt.Contact.isFalseAlarm)
                 {
-                    SelectContact(id);
+                    // Prioritize real aerial drone tracks at the top of the list
+                    int firstClutter = contactIdOrder.FindIndex(cid => trackedAssessments.TryGetValue(cid, out var a) && a.latestContact.isFalseAlarm);
+                    if (firstClutter >= 0)
+                    {
+                        contactIdOrder.Insert(firstClutter, id);
+                    }
+                    else
+                    {
+                        contactIdOrder.Insert(0, id);
+                    }
+
+                    // Auto-lock real drone if none selected or currently locked onto clutter
+                    if (string.IsNullOrEmpty(selectedContactId))
+                    {
+                        SelectContact(id);
+                    }
+                    else if (trackedAssessments.TryGetValue(selectedContactId, out var curAss) && curAss.latestContact.isFalseAlarm)
+                    {
+                        SelectContact(id);
+                    }
+                }
+                else
+                {
+                    // Append clutter blips to the bottom
+                    contactIdOrder.Add(id);
                 }
             }
         }
@@ -121,7 +143,9 @@ namespace DroneTrainer.Trainee
                 string id = contactIdOrder[i];
                 if (trackedAssessments.TryGetValue(id, out var assessment))
                 {
-                    if (now - assessment.lastSeenTime > staleContactTimeoutSeconds)
+                    // Clutter expires rapidly (2.5s) while real drone tracks persist
+                    float timeout = assessment.latestContact.isFalseAlarm ? 2.5f : staleContactTimeoutSeconds;
+                    if (now - assessment.lastSeenTime > timeout)
                     {
                         trackedAssessments.Remove(id);
                         contactIdOrder.RemoveAt(i);
@@ -351,7 +375,11 @@ namespace DroneTrainer.Trainee
                     GUIStyle btnStyle = isSelected ? buttonSelectedStyle : buttonNormalStyle;
 
                     string threatColor = GetThreatHexColor(assessment.threatLevel);
-                    string label = $"[{c.sensorType}] {c.id}\nClass: {assessment.classification} | <color={threatColor}>{assessment.threatLevel}</color> | Conf: {c.confidence:P0}";
+                    string trackTypeTag = c.isFalseAlarm 
+                        ? "<color=#ffaa00>[CLUTTER NOISE]</color>" 
+                        : "<color=#00e5ff><b>[AERIAL TRACK]</b></color>";
+
+                    string label = $"{trackTypeTag} [{c.sensorType}] {c.id}\nClass: <b>{assessment.classification}</b> | <color={threatColor}>{assessment.threatLevel}</color> | Conf: {c.confidence:P0}";
 
                     if (GUILayout.Button(label, btnStyle, GUILayout.Height(46)))
                     {
@@ -381,10 +409,17 @@ namespace DroneTrainer.Trainee
 
             // Header Telemetry Bar
             GUILayout.BeginHorizontal();
-            GUILayout.Label($"TARGET LOCK: <color=#00e5ff>{contact.id}</color> ({contact.sensorType})", headerStyle);
+            string targetBadge = contact.isFalseAlarm ? "<color=#ffaa00>[FALSE ALARM / CLUTTER]</color>" : "<color=#00e5ff>[AERIAL THREAT TRACK]</color>";
+            GUILayout.Label($"TARGET LOCK: {targetBadge} <b>{contact.id}</b> ({contact.sensorType})", headerStyle);
             GUILayout.FlexibleSpace();
             GUILayout.Label($"Est Pos: ({contact.estimatedPosition.x:F0}, {contact.estimatedPosition.y:F0}, {contact.estimatedPosition.z:F0}) m | Speed: {contact.estimatedVelocity.magnitude:F1} m/s | SNR: {contact.snrDb:F1} dB", statusStyle);
             GUILayout.EndHorizontal();
+
+            if (contact.isFalseAlarm)
+            {
+                GUILayout.Space(4);
+                GUILayout.Label("<color=#ffaa00>⚠️ <b>CLUTTER / ATMOSPHERIC REFLECTION:</b> Low confidence radar noise. Do NOT authorize kinetic strike!</color>", statusStyle);
+            }
 
             GUILayout.Space(8);
 
