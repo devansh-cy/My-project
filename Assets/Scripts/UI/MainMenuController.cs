@@ -177,22 +177,13 @@ namespace DroneTrainer.UI
             }
 
             var hud = FindAnyObjectByType<Sensors.SensorDegradationHUD>();
-            if (hud != null && activePreviewScenario.sensorProfile != null)
-            {
-                hud.SetDegradation(
-                    activePreviewScenario.sensorProfile.radarNoise,
-                    activePreviewScenario.sensorProfile.radarClutter,
-                    activePreviewScenario.sensorProfile.opticalFog,
-                    activePreviewScenario.sensorProfile.thermalNoise,
-                    activePreviewScenario.sensorProfile.rfInterference
-                );
-            }
+            // HUD automatically syncs with Radar and EO profiles in Update
 
             // 4. Apply lighting & environment
             var envLight = FindAnyObjectByType<Environment.EnvironmentLightingController>();
             if (envLight != null)
             {
-                envLight.ApplyEnvironment(activePreviewScenario.timeOfDay, activePreviewScenario.weather);
+                envLight.ApplyScenarioEnvironment(activePreviewScenario);
             }
 
             // 5. Spawn scenario threat swarm
