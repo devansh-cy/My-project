@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using DroneTrainer.Logging;
 using DroneTrainer.Scoring;
+using DroneTrainer.Sensors;
+using DroneTrainer.Trainee;
 
 namespace DroneTrainer.AAR
 {
@@ -372,7 +374,7 @@ namespace DroneTrainer.AAR
             {
                 var r = currentReport.contactRecords[i];
                 string matchColor = GetMatchColor(r.classificationResult);
-                string scoreColor = GetScoreColor(r.compositeScore);
+                string scoreColor = ColorToHex(GetScoreColor(r.compositeScore));
 
                 GUILayout.BeginHorizontal(cardStyle);
                 GUILayout.Label($"<b>{r.contactOrDroneId}</b>", labelSmallStyle, GUILayout.Width(130));
@@ -615,6 +617,11 @@ namespace DroneTrainer.AAR
             if (score >= 80f) return new Color(0.2f, 0.9f, 0.3f);
             if (score >= 60f) return new Color(0.95f, 0.85f, 0.2f);
             return new Color(0.95f, 0.25f, 0.25f);
+        }
+
+        private string ColorToHex(Color color)
+        {
+            return $"#{ColorUtility.ToHtmlStringRGB(color)}";
         }
 
         private Texture2D MakeTexture(int width, int height, Color color)
