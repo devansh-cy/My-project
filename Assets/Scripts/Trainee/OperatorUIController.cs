@@ -42,6 +42,9 @@ namespace DroneTrainer.Trainee
         [SerializeField] private float staleContactTimeoutSeconds = 12f;
         [SerializeField] private KeyCode toggleUiKey = KeyCode.Tab;
 
+        public void SetConsoleVisible(bool visible) => enableOnScreenC2Console = visible;
+        public bool IsConsoleVisible => enableOnScreenC2Console;
+
         // Active contacts dictionary keyed by contact ID
         private readonly Dictionary<string, ContactAssessment> trackedAssessments = new Dictionary<string, ContactAssessment>();
         private readonly List<string> contactIdOrder = new List<string>();

@@ -38,6 +38,23 @@ namespace DroneTrainer.UI
         private int selectedScenarioIndex = 0;
         private ScenarioDefinition activePreviewScenario;
         private bool isProceduralMode = false;
+        private bool isMenuVisible = true;
+
+        public bool IsMenuVisible
+        {
+            get => isMenuVisible;
+            set => isMenuVisible = value;
+        }
+
+        public void ToggleMenu() => isMenuVisible = !isMenuVisible;
+
+        private void Update()
+        {
+            if (DroneTrainer.Core.InputHelper.WasKeyPressed(KeyCode.Escape))
+            {
+                isMenuVisible = !isMenuVisible;
+            }
+        }
 
         // UI State
         private Vector2 scenarioListScroll = Vector2.zero;
@@ -134,11 +151,63 @@ namespace DroneTrainer.UI
             Debug.Log($"<color=#00e5ff><b>=== LAUNCHING C-UAS SIMULATION: '{activePreviewScenario.name}' ===</b></color>\n" +
                       $"Trainee: {traineeName} | Unit: {unitName} | Threats: {activePreviewScenario.GetTotalDroneCount()}");
 
-            // Initialize EventLogger session if present
+            // 1. Hide main menu
+            isMenuVisible = false;
+
+            // 2. Initialize EventLogger session if present
+            if (eventLogger == null) eventLogger = FindAnyObjectByType<EventLogger>();
             if (eventLogger != null)
             {
                 string sessionId = $"SESSION-{DateTime.UtcNow:yyyyMMdd_HHmmss}";
                 eventLogger.StartNewSession(sessionId, activePreviewScenario.id, traineeName);
+            }
+
+            // 3. Apply sensor profile to sensors and HUD
+            var radar = FindAnyObjectByType<Sensors.RadarSim>();
+            if (radar != null && activePreviewScenario.sensorProfile != null)
+            {
+                radar.ActiveProfile = activePreviewScenario.sensorProfile;
+            }
+
+            var eoCam = FindAnyObjectByType<Sensors.EOCameraSim>();
+            if (eoCam != null)
+            {
+                if (activePreviewScenario.sensorProfile != null) eoCam.ActiveProfile = activePreviewScenario.sensorProfile;
+                eoCam.ActiveTimeOfDay = activePreviewScenario.timeOfDay;
+            }
+
+            var hud = FindAnyObjectByType<Sensors.SensorDegradationHUD>();
+            if (hud != null && activePreviewScenario.sensorProfile != null)
+            {
+                hud.SetDegradation(
+                    activePreviewScenario.sensorProfile.radarNoise,
+                    activePreviewScenario.sensorProfile.radarClutter,
+                    activePreviewScenario.sensorProfile.opticalFog,
+                    activePreviewScenario.sensorProfile.thermalNoise,
+                    activePreviewScenario.sensorProfile.rfInterference
+                );
+            }
+
+            // 4. Apply lighting & environment
+            var envLight = FindAnyObjectByType<Environment.EnvironmentLightingController>();
+            if (envLight != null)
+            {
+                envLight.ApplyEnvironment(activePreviewScenario.timeOfDay, activePreviewScenario.weather);
+            }
+
+            // 5. Spawn scenario threat swarm
+            var swarm = FindAnyObjectByType<Drones.SwarmController>();
+            if (swarm != null)
+            {
+                int count = Mathf.Max(2, activePreviewScenario.GetTotalDroneCount());
+                swarm.SpawnSwarm(count);
+            }
+
+            // 6. Automatically open Operator C2 Console
+            var opUi = FindAnyObjectByType<Trainee.OperatorUIController>();
+            if (opUi != null)
+            {
+                opUi.SetConsoleVisible(true);
             }
 
             // Load dedicated simulation scene if specified
@@ -201,6 +270,17 @@ namespace DroneTrainer.UI
         private void OnGUI()
         {
             InitializeStyles();
+
+            if (!isMenuVisible)
+            {
+                GUI.color = new Color(0f, 0.9f, 1f);
+                if (GUI.Button(new Rect(15, 15, 180, 32), "⚙ MISSION MENU (ESC)", buttonStyle))
+                {
+                    isMenuVisible = true;
+                }
+                GUI.color = Color.white;
+                return;
+            }
 
             float screenW = Screen.width;
             float screenH = Screen.height;
