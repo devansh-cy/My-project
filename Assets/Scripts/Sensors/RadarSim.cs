@@ -119,7 +119,7 @@ namespace DroneTrainer.Sensors
                     Vector3 estimatedPos = ApplyMeasurementNoise(targetPos, range);
 
                     Contact contact = new Contact(
-                        id: $"RADAR-TRK-{trackCounter++:D4}",
+                        id: $"{radarId}-TRK-{trackCounter++:D4}",
                         estimatedPosition: estimatedPos,
                         confidence: Mathf.Clamp01(pd * (1f - (sensorProfile.radarNoise * 0.4f))),
                         sensorType: SensorType.Radar,
@@ -134,7 +134,7 @@ namespace DroneTrainer.Sensors
 
                     if (logDetections)
                     {
-                        Debug.Log($"[RadarSim] Detected: {contact}");
+                        Debug.Log($"[{radarId}] Detected: {contact}");
                     }
                 }
             }
@@ -220,7 +220,7 @@ namespace DroneTrainer.Sensors
                 );
 
                 Contact falseContact = new Contact(
-                    id: $"RADAR-CLUTTER-{Random.Range(1000, 9999)}",
+                    id: $"{radarId}-CLUTTER-{Random.Range(1000, 9999)}",
                     estimatedPosition: falsePos,
                     confidence: Random.Range(0.20f, 0.45f), // lower confidence for clutter
                     sensorType: SensorType.Radar,
