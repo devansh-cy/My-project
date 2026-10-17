@@ -10,13 +10,21 @@ namespace DroneTrainer.Trainee
     [Serializable]
     public struct TraineeActionEvent
     {
-        public float Timestamp { get; }
-        public string ContactId { get; }
-        public TraineeActionType ActionType { get; }
-        public TraineeClassification Classification { get; }
-        public ThreatLevel ThreatLevel { get; }
-        public ResponseOption Response { get; }
-        public string Details { get; }
+        public float timestamp;
+        public string contactId;
+        public TraineeActionType actionType;
+        public TraineeClassification classification;
+        public ThreatLevel threatLevel;
+        public ResponseOption response;
+        public string details;
+
+        public float Timestamp => timestamp;
+        public string ContactId => contactId;
+        public TraineeActionType ActionType => actionType;
+        public TraineeClassification Classification => classification;
+        public ThreatLevel ThreatLevel => threatLevel;
+        public ResponseOption Response => response;
+        public string Details => details;
 
         public TraineeActionEvent(float timestamp, string contactId, TraineeActionType actionType, 
                                   TraineeClassification classification = TraineeClassification.Unknown, 
@@ -24,13 +32,13 @@ namespace DroneTrainer.Trainee
                                   ResponseOption response = ResponseOption.Monitor, 
                                   string details = "")
         {
-            Timestamp = timestamp;
-            ContactId = contactId;
-            ActionType = actionType;
-            Classification = classification;
-            ThreatLevel = threatLevel;
-            Response = response;
-            Details = details;
+            this.timestamp = timestamp;
+            this.contactId = contactId;
+            this.actionType = actionType;
+            this.classification = classification;
+            this.threatLevel = threatLevel;
+            this.response = response;
+            this.details = details;
         }
 
         public override string ToString()

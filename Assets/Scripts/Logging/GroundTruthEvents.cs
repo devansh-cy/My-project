@@ -20,22 +20,28 @@ namespace DroneTrainer.Logging
     [Serializable]
     public struct DroneSpawnedEvent : ISimulationEvent
     {
-        public float Timestamp { get; }
-        public string DroneId { get; }
-        public ThreatType ThreatType { get; }
-        public Vector3 SpawnPosition { get; }
-        public bool IsHostile { get; }
+        public float timestamp;
+        public string droneId;
+        public ThreatType threatType;
+        public Vector3 spawnPosition;
+        public bool isHostile;
+
+        public float Timestamp => timestamp;
+        public string DroneId => droneId;
+        public ThreatType ThreatType => threatType;
+        public Vector3 SpawnPosition => spawnPosition;
+        public bool IsHostile => isHostile;
 
         public string EventType => nameof(DroneSpawnedEvent);
-        public string Summary => $"[SPAWN] Drone {DroneId} ({ThreatType}, Hostile={IsHostile}) at {SpawnPosition}";
+        public string Summary => $"[SPAWN] Drone {droneId} ({threatType}, Hostile={isHostile}) at {spawnPosition}";
 
         public DroneSpawnedEvent(float timestamp, string droneId, ThreatType threatType, Vector3 spawnPosition, bool isHostile)
         {
-            Timestamp = timestamp;
-            DroneId = droneId;
-            ThreatType = threatType;
-            SpawnPosition = spawnPosition;
-            IsHostile = isHostile;
+            this.timestamp = timestamp;
+            this.droneId = droneId;
+            this.threatType = threatType;
+            this.spawnPosition = spawnPosition;
+            this.isHostile = isHostile;
         }
     }
 
@@ -45,20 +51,25 @@ namespace DroneTrainer.Logging
     [Serializable]
     public struct DroneEnteredRangeEvent : ISimulationEvent
     {
-        public float Timestamp { get; }
-        public string DroneId { get; }
-        public float RangeMeters { get; }
-        public string SensorOrZoneId { get; }
+        public float timestamp;
+        public string droneId;
+        public float rangeMeters;
+        public string sensorOrZoneId;
+
+        public float Timestamp => timestamp;
+        public string DroneId => droneId;
+        public float RangeMeters => rangeMeters;
+        public string SensorOrZoneId => sensorOrZoneId;
 
         public string EventType => nameof(DroneEnteredRangeEvent);
-        public string Summary => $"[ENTER_RANGE] Drone {DroneId} entered {SensorOrZoneId} at {RangeMeters:F1}m";
+        public string Summary => $"[ENTER_RANGE] Drone {droneId} entered {sensorOrZoneId} at {rangeMeters:F1}m";
 
         public DroneEnteredRangeEvent(float timestamp, string droneId, float rangeMeters, string sensorOrZoneId)
         {
-            Timestamp = timestamp;
-            DroneId = droneId;
-            RangeMeters = rangeMeters;
-            SensorOrZoneId = sensorOrZoneId;
+            this.timestamp = timestamp;
+            this.droneId = droneId;
+            this.rangeMeters = rangeMeters;
+            this.sensorOrZoneId = sensorOrZoneId;
         }
     }
 
@@ -68,20 +79,25 @@ namespace DroneTrainer.Logging
     [Serializable]
     public struct DroneImpactEvent : ISimulationEvent
     {
-        public float Timestamp { get; }
-        public string DroneId { get; }
-        public Vector3 ImpactPosition { get; }
-        public bool AssetDamaged { get; }
+        public float timestamp;
+        public string droneId;
+        public Vector3 impactPosition;
+        public bool assetDamaged;
+
+        public float Timestamp => timestamp;
+        public string DroneId => droneId;
+        public Vector3 ImpactPosition => impactPosition;
+        public bool AssetDamaged => assetDamaged;
 
         public string EventType => nameof(DroneImpactEvent);
-        public string Summary => $"[IMPACT] Drone {DroneId} impacted at {ImpactPosition}! Damage={AssetDamaged}";
+        public string Summary => $"[IMPACT] Drone {droneId} impacted at {impactPosition}! Damage={assetDamaged}";
 
         public DroneImpactEvent(float timestamp, string droneId, Vector3 impactPosition, bool assetDamaged)
         {
-            Timestamp = timestamp;
-            DroneId = droneId;
-            ImpactPosition = impactPosition;
-            AssetDamaged = assetDamaged;
+            this.timestamp = timestamp;
+            this.droneId = droneId;
+            this.impactPosition = impactPosition;
+            this.assetDamaged = assetDamaged;
         }
     }
 
@@ -91,20 +107,25 @@ namespace DroneTrainer.Logging
     [Serializable]
     public struct DroneNeutralizedEvent : ISimulationEvent
     {
-        public float Timestamp { get; }
-        public string DroneId { get; }
-        public string NeutralizedByEffector { get; }
-        public Vector3 Position { get; }
+        public float timestamp;
+        public string droneId;
+        public string neutralizedByEffector;
+        public Vector3 position;
+
+        public float Timestamp => timestamp;
+        public string DroneId => droneId;
+        public string NeutralizedByEffector => neutralizedByEffector;
+        public Vector3 Position => position;
 
         public string EventType => nameof(DroneNeutralizedEvent);
-        public string Summary => $"[NEUTRALIZED] Drone {DroneId} neutralized by {NeutralizedByEffector} at {Position}";
+        public string Summary => $"[NEUTRALIZED] Drone {droneId} neutralized by {neutralizedByEffector} at {position}";
 
         public DroneNeutralizedEvent(float timestamp, string droneId, string neutralizedByEffector, Vector3 position)
         {
-            Timestamp = timestamp;
-            DroneId = droneId;
-            NeutralizedByEffector = neutralizedByEffector;
-            Position = position;
+            this.timestamp = timestamp;
+            this.droneId = droneId;
+            this.neutralizedByEffector = neutralizedByEffector;
+            this.position = position;
         }
     }
 }
