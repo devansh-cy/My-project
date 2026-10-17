@@ -58,7 +58,11 @@ namespace DroneTrainer.EditorTools
                 var rend = ground.GetComponent<Renderer>();
                 if (rend != null)
                 {
-                    var mat = new Material(Shader.Find("Standard") ?? Shader.Find("Diffuse"));
+                    Shader shader = Shader.Find("Universal Render Pipeline/Lit") 
+                        ?? Shader.Find("Universal Render Pipeline/Simple Lit")
+                        ?? Shader.Find("Standard") 
+                        ?? Shader.Find("Diffuse");
+                    var mat = rend.sharedMaterial != null ? new Material(rend.sharedMaterial) : new Material(shader);
                     mat.color = new Color(0.22f, 0.25f, 0.28f);
                     rend.sharedMaterial = mat;
                 }

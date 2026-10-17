@@ -62,10 +62,15 @@ namespace DroneTrainer.Environment
                     var renderer = building.GetComponent<Renderer>();
                     if (renderer != null)
                     {
-                        var mat = new Material(Shader.Find("Standard") ?? Shader.Find("Diffuse"));
+                        Shader shader = Shader.Find("Universal Render Pipeline/Lit") 
+                            ?? Shader.Find("Universal Render Pipeline/Simple Lit")
+                            ?? Shader.Find("Standard") 
+                            ?? Shader.Find("Diffuse");
+                        var mat = renderer.sharedMaterial != null ? new Material(renderer.sharedMaterial) : new Material(shader);
                         mat.color = buildingBaseColor;
                         mat.SetFloat("_Metallic", 0.3f);
                         mat.SetFloat("_Glossiness", 0.4f);
+                        if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", 0.4f);
                         renderer.sharedMaterial = mat;
                     }
 

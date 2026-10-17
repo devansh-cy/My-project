@@ -51,9 +51,7 @@ namespace DroneTrainer.Environment
                 var rend = mound.GetComponent<Renderer>();
                 if (rend != null)
                 {
-                    var mat = new Material(Shader.Find("Standard") ?? Shader.Find("Diffuse"));
-                    mat.color = new Color(0.28f, 0.38f, 0.22f); // Dark military olive grass
-                    rend.sharedMaterial = mat;
+                    rend.sharedMaterial = CreateSafeMaterial(rend, new Color(0.28f, 0.38f, 0.22f)); // Dark military olive grass
                 }
             }
 
@@ -80,9 +78,7 @@ namespace DroneTrainer.Environment
                 var trunkRend = trunk.GetComponent<Renderer>();
                 if (trunkRend != null)
                 {
-                    var mat = new Material(Shader.Find("Standard") ?? Shader.Find("Diffuse"));
-                    mat.color = new Color(0.35f, 0.22f, 0.12f);
-                    trunkRend.sharedMaterial = mat;
+                    trunkRend.sharedMaterial = CreateSafeMaterial(trunkRend, new Color(0.35f, 0.22f, 0.12f));
                 }
 
                 // Foliage Canopy
@@ -95,9 +91,7 @@ namespace DroneTrainer.Environment
                 var folRend = foliage.GetComponent<Renderer>();
                 if (folRend != null)
                 {
-                    var mat = new Material(Shader.Find("Standard") ?? Shader.Find("Diffuse"));
-                    mat.color = new Color(0.18f, (float)(0.40 + rng.NextDouble() * 0.15), 0.15f);
-                    folRend.sharedMaterial = mat;
+                    folRend.sharedMaterial = CreateSafeMaterial(folRend, new Color(0.18f, (float)(0.40 + rng.NextDouble() * 0.15), 0.15f));
                 }
             }
 
@@ -122,9 +116,7 @@ namespace DroneTrainer.Environment
                 var postRend = post.GetComponent<Renderer>();
                 if (postRend != null)
                 {
-                    var mat = new Material(Shader.Find("Standard") ?? Shader.Find("Diffuse"));
-                    mat.color = new Color(0.45f, 0.45f, 0.45f); // Gunmetal grey
-                    postRend.sharedMaterial = mat;
+                    postRend.sharedMaterial = CreateSafeMaterial(postRend, new Color(0.45f, 0.45f, 0.45f)); // Gunmetal grey
                 }
 
                 // Horizontal rail connecting to next post
@@ -147,9 +139,7 @@ namespace DroneTrainer.Environment
                 var railRend = rail.GetComponent<Renderer>();
                 if (railRend != null)
                 {
-                    var mat = new Material(Shader.Find("Standard") ?? Shader.Find("Diffuse"));
-                    mat.color = new Color(0.35f, 0.35f, 0.35f);
-                    railRend.sharedMaterial = mat;
+                    railRend.sharedMaterial = CreateSafeMaterial(railRend, new Color(0.35f, 0.35f, 0.35f));
                 }
             }
 
@@ -171,6 +161,17 @@ namespace DroneTrainer.Environment
             {
                 DestroyImmediate(existing.gameObject);
             }
+        }
+
+        private Material CreateSafeMaterial(Renderer rend, Color color)
+        {
+            Shader shader = Shader.Find("Universal Render Pipeline/Lit") 
+                ?? Shader.Find("Universal Render Pipeline/Simple Lit")
+                ?? Shader.Find("Standard") 
+                ?? Shader.Find("Diffuse");
+            var mat = rend.sharedMaterial != null ? new Material(rend.sharedMaterial) : new Material(shader);
+            mat.color = color;
+            return mat;
         }
     }
 }
