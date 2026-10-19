@@ -201,6 +201,25 @@ namespace DroneTrainer.UI
                 opUi.SetConsoleVisible(true);
             }
 
+            // 7. Ensure Phase 1, Phase 2, and Phase 5 tactical controllers exist
+            if (FindAnyObjectByType<Sensors.EffectorVisualController>() == null)
+            {
+                new GameObject("EffectorVisualController").AddComponent<Sensors.EffectorVisualController>();
+            }
+
+            if (FindAnyObjectByType<Sensors.FLIRGimbalCamera>() == null)
+            {
+                var flirObj = new GameObject("FLIR_Gimbal_Turret");
+                var tower = GameObject.Find("SensorTower") ?? GameObject.Find("FOB_Watchtower");
+                flirObj.transform.position = tower != null ? tower.transform.position + Vector3.up * 8f : new Vector3(0f, 10f, 0f);
+                flirObj.AddComponent<Sensors.FLIRGimbalCamera>();
+            }
+
+            if (FindAnyObjectByType<Scenarios.InstructorWhiteCellController>() == null)
+            {
+                new GameObject("InstructorWhiteCellController").AddComponent<Scenarios.InstructorWhiteCellController>();
+            }
+
             // Load dedicated simulation scene if specified
             if (!string.IsNullOrEmpty(simulationSceneName) && SceneManager.GetSceneByName(simulationSceneName).IsValid())
             {

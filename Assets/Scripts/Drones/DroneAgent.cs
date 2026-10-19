@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using DroneTrainer.Trainee;
 
 namespace DroneTrainer.Drones
 {
@@ -28,6 +29,13 @@ namespace DroneTrainer.Drones
         [SerializeField] private string droneId = "DRONE-001";
         [SerializeField] private bool isHostile = true;
         [SerializeField] private bool isNeutralized = false;
+        [SerializeField] private UasMilSpecGroup milSpecGroup = UasMilSpecGroup.Group1_Micro;
+
+        public UasMilSpecGroup MilSpecGroup
+        {
+            get => milSpecGroup;
+            set => milSpecGroup = value;
+        }
 
         [Header("Flight Parameters")]
         [SerializeField] [Range(1f, 60f)] private float maxSpeed = 15f;
@@ -67,6 +75,10 @@ namespace DroneTrainer.Drones
         private Vector3 externalSteeringForce = Vector3.zero;
         private float patternTimer = 0f;
         private float currentOrbitAngle = 0f;
+        private ResponseOption neutralizingCause = ResponseOption.Monitor;
+        private Vector3 tumbleAngularVelocity = Vector3.zero;
+        private float fallSpeed = 0f;
+        private bool hasHitGround = false;
 
         // Properties
         public string DroneId => droneId;
@@ -126,6 +138,8 @@ namespace DroneTrainer.Drones
             currentMode = mode;
             maxSpeed = Mathf.Max(1f, speed);
             isNeutralized = false;
+            hasHitGround = false;
+            fallSpeed = 0f;
             patternTimer = 0f;
             currentWaypointIndex = 0;
             velocity = transform.forward * (maxSpeed * 0.25f);
@@ -344,11 +358,105 @@ namespace DroneTrainer.Drones
             transform.rotation = Quaternion.Euler(smoothedPitch, currentEuler.y, smoothedRoll);
         }
 
+        public void Neutralize(ResponseOption cause)
+        {
+            if (isNeutralized) return;
+            isNeutralized = true;
+            neutralizingCause = cause;
+            fallSpeed = Mathf.Max(2f, velocity.y);
+
+            switch (cause)
+            {
+                case ResponseOption.DirectedEnergyLaser:
+                    tumbleAngularVelocity = new Vector3(Random.Range(180f, 360f), Random.Range(300f, 600f), Random.Range(180f, 360f));
+                    break;
+                case ResponseOption.ElectronicJammer:
+                    tumbleAngularVelocity = new Vector3(Random.Range(45f, 90f), Random.Range(120f, 240f), Random.Range(45f, 90f));
+                    break;
+                case ResponseOption.NetCatcher:
+                    tumbleAngularVelocity = new Vector3(Random.Range(15f, 35f), Random.Range(10f, 30f), Random.Range(15f, 35f));
+                    break;
+                case ResponseOption.KineticInterceptor:
+                    tumbleAngularVelocity = Random.insideUnitSphere * 720f;
+                    break;
+                default:
+                    tumbleAngularVelocity = new Vector3(90f, 180f, 45f);
+                    break;
+            }
+
+            // Publish ground-truth neutralization event
+            DroneTrainer.Core.Events.EventBus.Publish(new DroneTrainer.Logging.DroneNeutralizedEvent(
+                Time.time,
+                droneId,
+                cause.ToString(),
+                transform.position
+            ));
+        }
+
         private void ApplyNeutralizedPhysics()
         {
-            // Tumble and fall to ground when countermeasured or neutralized
-            transform.position += Vector3.down * (9.81f * 1.5f * Time.deltaTime);
-            transform.Rotate(new Vector3(45f, 90f, 30f) * Time.deltaTime);
+            if (hasHitGround) return;
+
+            // Gravity acceleration
+            fallSpeed += 9.81f * 2.2f * Time.deltaTime;
+            velocity = Vector3.MoveTowards(velocity, Vector3.zero, 4f * Time.deltaTime);
+            velocity.y = -fallSpeed;
+
+            transform.position += velocity * Time.deltaTime;
+            transform.Rotate(tumbleAngularVelocity * Time.deltaTime);
+
+            // Ground impact check
+            if (transform.position.y <= 0.35f)
+            {
+                hasHitGround = true;
+                Vector3 p = transform.position;
+                p.y = 0.2f;
+                transform.position = p;
+                transform.rotation = Quaternion.Euler(Random.Range(-20f, 20f), transform.eulerAngles.y, Random.Range(-20f, 20f));
+                SpawnCrashSmoke(p);
+            }
+        }
+
+        private void SpawnCrashSmoke(Vector3 position)
+        {
+            GameObject smokeObj = new GameObject($"CrashSmoke_{droneId}");
+            smokeObj.transform.position = position;
+
+            ParticleSystem ps = smokeObj.AddComponent<ParticleSystem>();
+            var main = ps.main;
+            main.startLifetime = 3.5f;
+            main.startSpeed = 1.2f;
+            main.startSize = 0.8f;
+            main.startColor = new Color(0.25f, 0.25f, 0.25f, 0.65f);
+            main.simulationSpace = ParticleSystemSimulationSpace.World;
+            main.duration = 4f;
+            main.loop = false;
+
+            var emission = ps.emission;
+            emission.rateOverTime = 12f;
+
+            var shape = ps.shape;
+            shape.shapeType = ParticleSystemShapeType.Cone;
+            shape.angle = 20f;
+            shape.radius = 0.3f;
+
+            var colorOverLifetime = ps.colorOverLifetime;
+            colorOverLifetime.enabled = true;
+            Gradient grad = new Gradient();
+            grad.SetKeys(
+                new[] { new GradientColorKey(new Color(0.3f, 0.3f, 0.3f), 0f), new GradientColorKey(new Color(0.1f, 0.1f, 0.1f), 1f) },
+                new[] { new GradientAlphaKey(0.7f, 0f), new GradientAlphaKey(0f, 1f) }
+            );
+            colorOverLifetime.color = grad;
+
+            var renderer = smokeObj.GetComponent<ParticleSystemRenderer>();
+            Shader unlit = Shader.Find("Universal Render Pipeline/Particles/Unlit") 
+                ?? Shader.Find("Particles/Standard Unlit") 
+                ?? Shader.Find("Sprites/Default");
+            renderer.material = new Material(unlit);
+
+            ps.Play();
+            Destroy(smokeObj, 6f);
         }
 
         #endregion

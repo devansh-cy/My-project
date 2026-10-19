@@ -58,13 +58,66 @@ namespace DroneTrainer.Drones
         private readonly List<DroneAgent> activeSwarm = new List<DroneAgent>();
         private int currentLeaderWpIndex = 0;
         private Vector3 virtualLeaderPosition;
+        private bool isPincerActive = false;
 
+        public static SwarmController Instance { get; private set; }
         public IReadOnlyList<DroneAgent> ActiveSwarm => activeSwarm;
         public Vector3 LeaderPosition => leaderTarget != null ? leaderTarget.position : virtualLeaderPosition;
+        public bool IsPincerActive => isPincerActive;
 
         private void Awake()
         {
+            if (Instance != null && Instance != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
+            Instance = this;
+
             EnsurePool();
+        }
+
+        /// <summary>
+        /// Phase 4: Tactical Pincer Swarm Maneuver.
+        /// Splits swarm into a high-altitude radar decoy wing and a low-altitude terrain-hugging urban flank wing.
+        /// </summary>
+        public void TriggerPincerManeuver()
+        {
+            if (activeSwarm.Count < 2) return;
+            isPincerActive = true;
+
+            var tower = GameObject.Find("SensorTower") ?? GameObject.Find("FOB_Watchtower");
+            Vector3 targetBase = tower != null ? tower.transform.position : Vector3.zero;
+
+            int splitIndex = activeSwarm.Count / 2;
+
+            // Wing 1 (Decoy High Diversion - 50%): High altitude, direct flight, large radar cross section
+            for (int i = 0; i < splitIndex; i++)
+            {
+                DroneAgent agent = activeSwarm[i];
+                if (agent == null) continue;
+
+                Vector3 highWp = new Vector3(targetBase.x + Random.Range(-25f, 25f), 85f, targetBase.z + Random.Range(-25f, 25f));
+                agent.SetFlightMode(DroneFlightMode.Straight);
+                agent.SetWaypoints(new List<Vector3> { agent.transform.position + Vector3.up * 35f, highWp });
+            }
+
+            // Wing 2 (Low Urban Flank - 50%): Nap-of-the-earth (12m altitude) flanking through urban canyons
+            for (int i = splitIndex; i < activeSwarm.Count; i++)
+            {
+                DroneAgent agent = activeSwarm[i];
+                if (agent == null) continue;
+
+                Vector3 flankWp1 = agent.transform.position + agent.transform.right * 70f;
+                flankWp1.y = 12f;
+                Vector3 flankWp2 = targetBase + (agent.transform.right * 50f);
+                flankWp2.y = 12f;
+
+                agent.SetFlightMode(DroneFlightMode.TerrainHugging);
+                agent.SetWaypoints(new List<Vector3> { flankWp1, flankWp2, targetBase });
+            }
+
+            Debug.Log($"[SwarmController] Executing tactical PINCER maneuver: {splitIndex} drones high decoy, {activeSwarm.Count - splitIndex} low urban flank.");
         }
 
         private void Start()

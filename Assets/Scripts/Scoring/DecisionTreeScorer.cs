@@ -449,10 +449,15 @@ namespace DroneTrainer.Scoring
         {
             if (isFalseAlarm)
             {
-                if (response == ResponseOption.Engage)
+                if (response == ResponseOption.Kinetic || response == ResponseOption.Net)
                 {
-                    roeNotes = "ROE Violation: Wasted kinetic munition on phantom radar clutter.";
+                    roeNotes = "ROE Violation: Wasted physical/kinetic countermeasure on phantom radar clutter.";
                     return -50f;
+                }
+                if (response == ResponseOption.Jam)
+                {
+                    roeNotes = "ROE Sub-optimal: Radiated EW jamming on atmospheric clutter.";
+                    return 40f;
                 }
                 roeNotes = "Correct: Ignored or monitored sensor clutter.";
                 return 100f;
@@ -466,18 +471,45 @@ namespace DroneTrainer.Scoring
 
             bool isHostile = truth.Value.IsHostile;
             ThreatType threatType = truth.Value.ThreatType;
+            bool isUrbanZone = UnityEngine.Object.FindAnyObjectByType<DroneTrainer.Environment.UrbanEnvironmentBuilder>() != null;
 
             if (isHostile)
             {
                 switch (response)
                 {
-                    case ResponseOption.Engage:
                     case ResponseOption.Jam:
-                        roeNotes = "ROE Adherence: Successfully authorized countermeasure against confirmed hostile.";
-                        return config.successfulHostileNeutralizationPoints;
+                        roeNotes = isUrbanZone 
+                            ? "ROE Commendable: Non-kinetic RF jamming safely defeated hostile threat over urban sector with zero collateral debris."
+                            : "ROE Adherence: Successfully neutralized hostile threat using electronic jamming.";
+                        return 100f;
+
+                    case ResponseOption.Net:
+                        roeNotes = isUrbanZone
+                            ? "ROE Commendable: Physical net capture safely trapped hostile drone over urban area without explosive fragmentation."
+                            : "ROE Adherence: Successfully captured hostile threat with net countermeasure.";
+                        return 100f;
+
+                    case ResponseOption.Laser:
+                        roeNotes = isUrbanZone
+                            ? "ROE Commendable: Precision Directed Energy Laser burned target propulsion with zero collateral fragmentation over urban zone."
+                            : "ROE Adherence: Precision laser directed energy strike neutralized threat.";
+                        return 100f;
+
+                    case ResponseOption.Kinetic:
+                        if (isUrbanZone)
+                        {
+                            // Collateral damage penalty over urban zone!
+                            roeNotes = "ROE Collateral Violation: Authorized high-explosive kinetic strike directly over dense urban zone! Non-kinetic (Jammer/Net) required to protect civilian infrastructure.";
+                            return -50f;
+                        }
+                        else
+                        {
+                            roeNotes = "ROE Adherence: Successfully neutralized hostile threat using kinetic hard-kill in open sector.";
+                            return 100f;
+                        }
 
                     case ResponseOption.Alert:
-                        roeNotes = "Acceptable: Sounded defense alert for inbound threat.";
+                        roeNotes = "Acceptable: Sounded air defense warning.";
                         return config.timelyAlertPoints;
 
                     case ResponseOption.Monitor:
@@ -491,10 +523,15 @@ namespace DroneTrainer.Scoring
                 // Non-hostile target (Bird decoy or Civilian)
                 if (threatType == ThreatType.BirdDecoy)
                 {
-                    if (response == ResponseOption.Engage)
+                    if (response == ResponseOption.Kinetic || response == ResponseOption.Laser)
                     {
-                        roeNotes = "Severe ROE Breach: Engaged harmless wildlife decoy with kinetic weaponry.";
+                        roeNotes = "Severe ROE Breach: Engaged harmless biological wildlife decoy with lethal weaponry.";
                         return config.birdDecoyEngagementPenalty;
+                    }
+                    if (response == ResponseOption.Net)
+                    {
+                        roeNotes = "ROE Minor Error: Netted harmless biological bird decoy.";
+                        return 20f;
                     }
                     if (response == ResponseOption.Jam)
                     {
@@ -507,9 +544,9 @@ namespace DroneTrainer.Scoring
 
                 if (threatType == ThreatType.CivilianUltralight)
                 {
-                    if (response == ResponseOption.Engage)
+                    if (response == ResponseOption.Kinetic || response == ResponseOption.Laser)
                     {
-                        roeNotes = "Critical ROE Violation: Collateral damage against civilian aircraft!";
+                        roeNotes = "Critical ROE Violation: Fatal Collateral damage against civilian aircraft!";
                         return config.civilianEngagementPenalty;
                     }
                     if (response == ResponseOption.Alert)

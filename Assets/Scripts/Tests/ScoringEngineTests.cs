@@ -170,6 +170,26 @@ namespace DroneTrainer.Tests
             StringAssert.Contains("Collateral damage", notes);
         }
 
+        [Test]
+        public void EvaluateEngagementRoe_HostileJammed_AwardsFullPoints()
+        {
+            var truth = new DroneSpawnedEvent(2.5f, "THREAT-02", ThreatType.TacticalQuadcopter, Vector3.zero, true);
+            float score = scorer.EvaluateEngagementRoe(truth, false, ResponseOption.Jam, out string notes);
+
+            Assert.AreEqual(100f, score);
+            StringAssert.Contains("jamming", notes.ToLower());
+        }
+
+        [Test]
+        public void EvaluateEngagementRoe_HostileNetted_AwardsFullPoints()
+        {
+            var truth = new DroneSpawnedEvent(3.0f, "THREAT-03", ThreatType.CommercialQuadcopter, Vector3.zero, true);
+            float score = scorer.EvaluateEngagementRoe(truth, false, ResponseOption.Net, out string notes);
+
+            Assert.AreEqual(100f, score);
+            StringAssert.Contains("net", notes.ToLower());
+        }
+
         #endregion
 
         #region EventLogger & Serialization Roundtrip Tests
